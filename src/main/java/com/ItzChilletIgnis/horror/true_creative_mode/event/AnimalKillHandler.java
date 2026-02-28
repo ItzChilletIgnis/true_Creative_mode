@@ -52,7 +52,7 @@ public class AnimalKillHandler {
                             player.sendMessage(Text.literal("Satisfied?").formatted(Formatting.RED, Formatting.BOLD), false);
                             
                             // 播放洞穴音效增强恐怖感
-                            world.playSound(null, player.getBlockPos(), SoundEvents.AMBIENT_CAVE, SoundCategory.AMBIENT, 1.0F, 1.0F);
+                            world.playSound(null, player.getBlockPos(), SoundEvents.AMBIENT_CAVE.value(), SoundCategory.AMBIENT, 1.0F, 1.0F);
                             
                             // 遍历世界清理动物 (使用虚空伤害触发死亡动画)
                             world.iterateEntities().forEach(entity -> {

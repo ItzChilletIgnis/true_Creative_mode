@@ -73,7 +73,7 @@ public class BlockBreakHandler {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0)); // 4秒 (80 ticks)
                     
                     // 觉醒时刻播放洞穴音效
-                    world.playSound(null, pos, SoundEvents.AMBIENT_CAVE, SoundCategory.AMBIENT, 1.0F, 1.0F);
+                    world.playSound(null, pos, SoundEvents.AMBIENT_CAVE.value(), SoundCategory.AMBIENT, 1.0F, 1.0F);
                 }
             } else {
                 // 掉落老友
