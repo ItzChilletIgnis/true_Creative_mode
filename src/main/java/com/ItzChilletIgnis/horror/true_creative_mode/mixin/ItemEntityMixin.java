@@ -36,7 +36,7 @@ public abstract class ItemEntityMixin extends Entity {
             ItemStack stack = this.getStack();
             if (stack.getItem() instanceof ToolItem && stack.getDamage() < stack.getMaxDamage()) {
                 AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.getWorld());
-                state.abandonedTools.add(new AbandonedToolState.AbandonedTool(stack.copy(), null, -1, this.getWorld().getTime(), false, null));
+                state.abandonedTools.add(new AbandonedToolState.AbandonedTool(stack.copy()));
                 state.totalAbandonedCount++;
                 state.markDirty();
                 this.isRecorded = true;
@@ -51,7 +51,7 @@ public abstract class ItemEntityMixin extends Entity {
                 ItemStack stack = this.getStack();
                 if (stack.getItem() instanceof ToolItem && stack.getDamage() < stack.getMaxDamage()) {
                     AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.getWorld());
-                    state.abandonedTools.add(new AbandonedToolState.AbandonedTool(stack.copy(), null, -1, this.getWorld().getTime(), false, null));
+                    state.abandonedTools.add(new AbandonedToolState.AbandonedTool(stack.copy()));
                     state.totalAbandonedCount++;
                     state.markDirty();
                     this.isRecorded = true;

@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -15,9 +17,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class BlockBreakHandler {
     private static final Random RANDOM = new Random();
@@ -40,17 +40,13 @@ public class BlockBreakHandler {
         if (world.isClient) return;
 
         AbandonedToolState toolState = AbandonedToolState.getServerState((ServerWorld) world);
+        if (toolState.isResoluteDepartureActive) return; // 永久关闭重逢事件
         
-        // 筛选符合条件的工具：非容器内的，或者在容器内关了超过 3 分钟的，且尚未重逢的
-        List<AbandonedToolState.AbandonedTool> eligibleTools = toolState.abandonedTools.stream()
-                .filter(tool -> !tool.reunited)
-                .filter(tool -> !tool.inContainer || (world.getTime() - tool.timestamp >= 3600))
-                .collect(Collectors.toList());
-
-        if (eligibleTools.isEmpty()) return;
+        if (toolState.abandonedTools.isEmpty()) return;
 
         if (RANDOM.nextFloat() < 0.05f) {
-            AbandonedToolState.AbandonedTool abandonedTool = eligibleTools.get(RANDOM.nextInt(eligibleTools.size()));
+            int index = RANDOM.nextInt(toolState.abandonedTools.size());
+            AbandonedToolState.AbandonedTool abandonedTool = toolState.abandonedTools.get(index);
             ItemStack stack = abandonedTool.stack;
 
             NbtCompound nbt = stack.getOrCreateNbt();
@@ -64,21 +60,24 @@ public class BlockBreakHandler {
                 remains.setCustomName(Text.literal(msg).formatted(Formatting.DARK_RED));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, remains));
                 
-                // 彻底移除记录
-                toolState.abandonedTools.remove(abandonedTool);
+                // 恨意值增加
+                toolState.addHatred(3);
+                toolState.remainsDroppedCount++;
+
+                // 黑化判定
+                if (toolState.remainsDroppedCount > 4) {
+                    toolState.isResoluteDepartureActive = true;
+                    player.sendMessage(Text.literal("你为什么这么残酷？").formatted(Formatting.RED, Formatting.BOLD), false);
+                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0));
+                }
             } else {
                 // 掉落老友
                 String msg = TOOL_MESSAGES[RANDOM.nextInt(TOOL_MESSAGES.length)];
                 stack.setCustomName(Text.literal(msg).formatted(Formatting.GRAY, Formatting.ITALIC));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack));
-                
-                // 标记为已重逢，等待开箱抹除（如果是容器内的）或后续处理
-                if (abandonedTool.inContainer) {
-                    abandonedTool.reunited = true;
-                } else {
-                    toolState.abandonedTools.remove(abandonedTool);
-                }
             }
+            
+            toolState.abandonedTools.remove(index);
             toolState.markDirty();
         }
     }

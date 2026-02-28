@@ -4,73 +4,53 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class AbandonedToolState extends PersistentState {
     public static class AbandonedTool {
         public ItemStack stack;
-        public BlockPos containerPos;
-        public int slot;
-        public long timestamp;
-        public boolean inContainer;
-        public UUID ownerUuid;
-        public UUID uuid; // 死亡印记
-        public boolean reunited = false; // 是否已在外界重逢
 
-        public AbandonedTool(ItemStack stack, BlockPos pos, int slot, long timestamp, boolean inContainer, UUID ownerUuid) {
+        public AbandonedTool(ItemStack stack) {
             this.stack = stack;
-            this.containerPos = pos;
-            this.slot = slot;
-            this.timestamp = timestamp;
-            this.inContainer = inContainer;
-            this.ownerUuid = ownerUuid;
-            this.uuid = UUID.randomUUID();
         }
 
         public NbtCompound toNbt() {
             NbtCompound nbt = new NbtCompound();
             nbt.put("Stack", stack.writeNbt(new NbtCompound()));
-            if (containerPos != null) {
-                nbt.putLong("Pos", containerPos.asLong());
-            }
-            nbt.putInt("Slot", slot);
-            nbt.putLong("Timestamp", timestamp);
-            nbt.putBoolean("InContainer", inContainer);
-            if (ownerUuid != null) {
-                nbt.putUuid("Owner", ownerUuid);
-            }
-            nbt.putUuid("UUID", uuid);
-            nbt.putBoolean("Reunited", reunited);
             return nbt;
         }
 
         public static AbandonedTool fromNbt(NbtCompound nbt) {
             ItemStack stack = ItemStack.fromNbt(nbt.getCompound("Stack"));
-            BlockPos pos = nbt.contains("Pos") ? BlockPos.fromLong(nbt.getLong("Pos")) : null;
-            int slot = nbt.getInt("Slot");
-            long timestamp = nbt.getLong("Timestamp");
-            boolean inContainer = nbt.getBoolean("InContainer");
-            UUID ownerUuid = nbt.contains("Owner") ? nbt.getUuid("Owner") : null;
-            AbandonedTool tool = new AbandonedTool(stack, pos, slot, timestamp, inContainer, ownerUuid);
-            tool.uuid = nbt.getUuid("UUID");
-            tool.reunited = nbt.getBoolean("Reunited");
-            return tool;
+            return new AbandonedTool(stack);
         }
     }
 
     public final List<AbandonedTool> abandonedTools = new ArrayList<>();
     public int totalAbandonedCount = 0;
+    public int hatredValue = 0;
+    public int currentStage = 1;
+    public int remainsDroppedCount = 0;
+    public boolean isResoluteDepartureActive = false;
 
-    public AbandonedTool getToolByUUID(UUID uuid) {
-        for (AbandonedTool tool : abandonedTools) {
-            if (tool.uuid.equals(uuid)) return tool;
+    public void addHatred(int amount) {
+        this.hatredValue += amount;
+        updateStage();
+        this.markDirty();
+    }
+
+    public void updateStage() {
+        int previousStage = this.currentStage;
+        if (this.hatredValue >= 100 && this.currentStage < 2) {
+            this.currentStage = 2;
         }
-        return null;
+        
+        if (this.currentStage > previousStage) {
+            System.out.println("[True Creative Mode] The world's hatred grows. Reached Stage " + this.currentStage);
+        }
     }
 
     @Override
@@ -81,6 +61,10 @@ public class AbandonedToolState extends PersistentState {
         }
         nbt.put("AbandonedTools", list);
         nbt.putInt("TotalAbandonedCount", totalAbandonedCount);
+        nbt.putInt("HatredValue", hatredValue);
+        nbt.putInt("CurrentStage", currentStage);
+        nbt.putInt("RemainsDroppedCount", remainsDroppedCount);
+        nbt.putBoolean("IsResoluteDepartureActive", isResoluteDepartureActive);
         return nbt;
     }
 
@@ -91,6 +75,10 @@ public class AbandonedToolState extends PersistentState {
             state.abandonedTools.add(AbandonedTool.fromNbt(list.getCompound(i)));
         }
         state.totalAbandonedCount = nbt.getInt("TotalAbandonedCount");
+        state.hatredValue = nbt.getInt("HatredValue");
+        state.currentStage = nbt.contains("CurrentStage") ? nbt.getInt("CurrentStage") : 1;
+        state.remainsDroppedCount = nbt.getInt("RemainsDroppedCount");
+        state.isResoluteDepartureActive = nbt.getBoolean("IsResoluteDepartureActive");
         return state;
     }
 
