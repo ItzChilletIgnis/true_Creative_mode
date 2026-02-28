@@ -7,6 +7,7 @@ import net.minecraft.entity.ai.NoPenaltyTargeting;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -31,18 +32,19 @@ public abstract class MobEntityMixin extends LivingEntity {
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo ci) {
-        if ((Object) this instanceof AnimalEntity animal) {
-            this.goalSelector.add(0, new CustomFleeGoal(animal));
-            this.goalSelector.add(0, new StareAndBackGoal(animal));
+        if ((Object) this instanceof AnimalEntity) {
+            PathAwareEntity pathAware = (PathAwareEntity) (Object) this;
+            this.goalSelector.add(0, new CustomFleeGoal(pathAware));
+            this.goalSelector.add(1, new StareAndBackGoal(pathAware));
         }
     }
 
     private class CustomFleeGoal extends Goal {
-        private final MobEntity mob;
+        private final PathAwareEntity mob;
         private PlayerEntity target;
         private Vec3d safePos;
 
-        public CustomFleeGoal(MobEntity mob) {
+        public CustomFleeGoal(PathAwareEntity mob) {
             this.mob = mob;
             this.setControls(EnumSet.of(Control.MOVE));
         }
@@ -75,21 +77,21 @@ public abstract class MobEntityMixin extends LivingEntity {
     }
 
     private class StareAndBackGoal extends Goal {
-        private final AnimalEntity animal;
+        private final PathAwareEntity mob;
         private PlayerEntity target;
         private int pathUpdateCountdown = 0;
 
-        public StareAndBackGoal(AnimalEntity animal) {
-            this.animal = animal;
+        public StareAndBackGoal(PathAwareEntity mob) {
+            this.mob = mob;
             this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
         }
 
         @Override
         public boolean canStart() {
-            if (this.animal.getWorld().isClient) return false;
-            AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.animal.getWorld());
-            if (state.isNauseaEscalated && state.nauseaEndTime > this.animal.getWorld().getTime()) {
-                this.target = this.animal.getWorld().getClosestPlayer(this.animal, 16.0);
+            if (this.mob.getWorld().isClient) return false;
+            AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.mob.getWorld());
+            if (state.isNauseaEscalated && state.nauseaEndTime > this.mob.getWorld().getTime()) {
+                this.target = this.mob.getWorld().getClosestPlayer(this.mob, 16.0);
                 return this.target != null;
             }
             return false;
@@ -99,15 +101,15 @@ public abstract class MobEntityMixin extends LivingEntity {
         public void tick() {
             if (this.target != null) {
                 // 强制接管视角
-                this.animal.getLookControl().lookAt(this.target, 30.0F, 30.0F);
+                this.mob.getLookControl().lookAt(this.target, 30.0F, 30.0F);
                 
                 if (--this.pathUpdateCountdown <= 0) {
                     this.pathUpdateCountdown = 10; // 半秒寻路一次
                     
-                    Vec3d reverseDirection = this.animal.getPos().subtract(this.target.getPos()).normalize();
-                    Vec3d retreatPos = this.animal.getPos().add(reverseDirection.multiply(3.0));
+                    Vec3d reverseDirection = this.mob.getPos().subtract(this.target.getPos()).normalize();
+                    Vec3d retreatPos = this.mob.getPos().add(reverseDirection.multiply(3.0));
                     
-                    this.animal.getNavigation().startMovingTo(retreatPos.x, retreatPos.y, retreatPos.z, 1.2);
+                    this.mob.getNavigation().startMovingTo(retreatPos.x, retreatPos.y, retreatPos.z, 1.2);
                 }
             }
         }
@@ -115,7 +117,7 @@ public abstract class MobEntityMixin extends LivingEntity {
         @Override
         public void stop() {
             this.target = null;
-            this.animal.getNavigation().stop();
+            this.mob.getNavigation().stop();
         }
     }
 }
