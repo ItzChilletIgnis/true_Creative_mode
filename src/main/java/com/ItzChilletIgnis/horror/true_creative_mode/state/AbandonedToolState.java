@@ -2,6 +2,7 @@ package com.ItzChilletIgnis.horror.true_creative_mode.state;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
 import net.minecraft.server.world.ServerWorld;
@@ -105,14 +106,24 @@ public class AbandonedToolState extends PersistentState {
         state.isResoluteDepartureActive = nbt.getBoolean("IsResoluteDepartureActive");
 
         // 反序列化作呕与灭绝数据
-        NbtList recentKillsNbt = nbt.getList("RecentAnimalKills", 4);
-        for (int i = 0; i < recentKillsNbt.size(); i++) state.recentAnimalKills.add(recentKillsNbt.getLong(i));
+        NbtList recentKillsNbt = nbt.getList("RecentAnimalKills", 4); // 4 is NbtLong type
+        for (int i = 0; i < recentKillsNbt.size(); i++) {
+            NbtElement element = recentKillsNbt.get(i);
+            if (element instanceof NbtLong nbtLong) {
+                state.recentAnimalKills.add(nbtLong.longValue());
+            }
+        }
         
         state.nauseaEndTime = nbt.getLong("NauseaEndTime");
         state.isNauseaEscalated = nbt.getBoolean("IsNauseaEscalated");
         
         NbtList escalatedKillsNbt = nbt.getList("EscalatedKills", 4);
-        for (int i = 0; i < escalatedKillsNbt.size(); i++) state.escalatedKills.add(escalatedKillsNbt.getLong(i));
+        for (int i = 0; i < escalatedKillsNbt.size(); i++) {
+            NbtElement element = escalatedKillsNbt.get(i);
+            if (element instanceof NbtLong nbtLong) {
+                state.escalatedKills.add(nbtLong.longValue());
+            }
+        }
         
         state.escalatedKillTotal = nbt.getInt("EscalatedKillTotal");
         state.extinctionEndTime = nbt.getLong("ExtinctionEndTime");

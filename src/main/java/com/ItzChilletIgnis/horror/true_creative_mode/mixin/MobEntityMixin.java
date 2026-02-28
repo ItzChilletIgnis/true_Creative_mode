@@ -2,34 +2,42 @@ package com.ItzChilletIgnis.horror.true_creative_mode.mixin;
 
 import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.FleeEntityGoal;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.GoalSelector;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.EnumSet;
 
-@Mixin(AnimalEntity.class)
-public abstract class AnimalEntityMixin extends PassiveEntity {
-    protected AnimalEntityMixin(EntityType<? extends PassiveEntity> entityType, World world) {
+@Mixin(MobEntity.class)
+public abstract class MobEntityMixin extends LivingEntity {
+    @Shadow @Final protected GoalSelector goalSelector;
+
+    protected MobEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
         super(entityType, world);
     }
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo ci) {
-        AnimalEntity animal = (AnimalEntity) (Object) this;
-        animal.goalSelector.add(0, new FleePlayerGoal(animal));
-        animal.goalSelector.add(0, new StareAndBackGoal(animal));
+        if ((Object) this instanceof AnimalEntity animal) {
+            this.goalSelector.add(0, new FleePlayerGoal(animal));
+            this.goalSelector.add(0, new StareAndBackGoal(animal));
+        }
     }
 
-    private class FleePlayerGoal extends FleeEntityGoal<PlayerEntity> {
+    private static class FleePlayerGoal extends FleeEntityGoal<PlayerEntity> {
         public FleePlayerGoal(AnimalEntity animal) {
             super(animal, PlayerEntity.class, 16.0F, 1.5, 2.0);
         }
@@ -42,7 +50,7 @@ public abstract class AnimalEntityMixin extends PassiveEntity {
         }
     }
 
-    private class StareAndBackGoal extends Goal {
+    private static class StareAndBackGoal extends Goal {
         private final AnimalEntity animal;
         private PlayerEntity target;
 

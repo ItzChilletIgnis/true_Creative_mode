@@ -2,17 +2,13 @@ package com.ItzChilletIgnis.horror.true_creative_mode.event;
 
 import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.Iterator;
 
 public class AnimalKillHandler {
     public static void register() {
@@ -41,11 +37,10 @@ public class AnimalKillHandler {
                         // 九头蛇机制：在玩家背后生成两只同类型动物
                         double yaw = Math.toRadians(player.getYaw());
                         Vec3d offset = new Vec3d(Math.sin(yaw) * 6, 0, -Math.cos(yaw) * 6);
-                        Vec3d spawnPos = player.getPos().add(offset);
                         
                         EntityType<?> type = animal.getType();
                         for (int i = 0; i < 2; i++) {
-                            type.spawn(world, null, null, null, player.getBlockPos().add((int)offset.x, 2, (int)offset.z), SpawnReason.EVENT, true, false);
+                            type.spawn(world, player.getBlockPos().add((int)offset.x, 2, (int)offset.z), SpawnReason.EVENT);
                         }
 
                         // 灭绝判定
@@ -55,9 +50,9 @@ public class AnimalKillHandler {
                             player.sendMessage(Text.literal("Satisfied?").formatted(Formatting.RED, Formatting.BOLD), false);
                             
                             // 遍历世界清理动物
-                            for (Entity entity : world.iterateEntities()) {
+                            world.iterateEntities().forEach(entity -> {
                                 if (entity instanceof AnimalEntity) entity.discard();
-                            }
+                            });
                         }
                     }
                 } else {
