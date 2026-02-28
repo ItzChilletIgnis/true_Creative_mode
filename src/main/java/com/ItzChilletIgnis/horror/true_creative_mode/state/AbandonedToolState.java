@@ -3,6 +3,7 @@ package com.ItzChilletIgnis.horror.true_creative_mode.state;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtLong;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 
@@ -36,6 +37,14 @@ public class AbandonedToolState extends PersistentState {
     public int remainsDroppedCount = 0;
     public boolean isResoluteDepartureActive = false;
 
+    // 作呕与灭绝相关变量
+    public List<Long> recentAnimalKills = new ArrayList<>();
+    public long nauseaEndTime = 0;
+    public boolean isNauseaEscalated = false;
+    public List<Long> escalatedKills = new ArrayList<>();
+    public int escalatedKillTotal = 0;
+    public long extinctionEndTime = 0;
+
     public void addHatred(int amount) {
         this.hatredValue += amount;
         updateStage();
@@ -47,7 +56,6 @@ public class AbandonedToolState extends PersistentState {
         if (this.hatredValue >= 100 && this.currentStage < 2) {
             this.currentStage = 2;
         }
-        
         if (this.currentStage > previousStage) {
             System.out.println("[True Creative Mode] The world's hatred grows. Reached Stage " + this.currentStage);
         }
@@ -65,6 +73,22 @@ public class AbandonedToolState extends PersistentState {
         nbt.putInt("CurrentStage", currentStage);
         nbt.putInt("RemainsDroppedCount", remainsDroppedCount);
         nbt.putBoolean("IsResoluteDepartureActive", isResoluteDepartureActive);
+
+        // 序列化作呕与灭绝数据
+        NbtList recentKillsNbt = new NbtList();
+        for (Long time : recentAnimalKills) recentKillsNbt.add(NbtLong.of(time));
+        nbt.put("RecentAnimalKills", recentKillsNbt);
+        
+        nbt.putLong("NauseaEndTime", nauseaEndTime);
+        nbt.putBoolean("IsNauseaEscalated", isNauseaEscalated);
+        
+        NbtList escalatedKillsNbt = new NbtList();
+        for (Long time : escalatedKills) escalatedKillsNbt.add(NbtLong.of(time));
+        nbt.put("EscalatedKills", escalatedKillsNbt);
+        
+        nbt.putInt("EscalatedKillTotal", escalatedKillTotal);
+        nbt.putLong("ExtinctionEndTime", extinctionEndTime);
+        
         return nbt;
     }
 
@@ -79,6 +103,20 @@ public class AbandonedToolState extends PersistentState {
         state.currentStage = nbt.contains("CurrentStage") ? nbt.getInt("CurrentStage") : 1;
         state.remainsDroppedCount = nbt.getInt("RemainsDroppedCount");
         state.isResoluteDepartureActive = nbt.getBoolean("IsResoluteDepartureActive");
+
+        // 反序列化作呕与灭绝数据
+        NbtList recentKillsNbt = nbt.getList("RecentAnimalKills", 4);
+        for (int i = 0; i < recentKillsNbt.size(); i++) state.recentAnimalKills.add(recentKillsNbt.getLong(i));
+        
+        state.nauseaEndTime = nbt.getLong("NauseaEndTime");
+        state.isNauseaEscalated = nbt.getBoolean("IsNauseaEscalated");
+        
+        NbtList escalatedKillsNbt = nbt.getList("EscalatedKills", 4);
+        for (int i = 0; i < escalatedKillsNbt.size(); i++) state.escalatedKills.add(escalatedKillsNbt.getLong(i));
+        
+        state.escalatedKillTotal = nbt.getInt("EscalatedKillTotal");
+        state.extinctionEndTime = nbt.getLong("ExtinctionEndTime");
+
         return state;
     }
 

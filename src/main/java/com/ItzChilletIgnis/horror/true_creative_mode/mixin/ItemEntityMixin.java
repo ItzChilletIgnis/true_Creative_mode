@@ -47,7 +47,7 @@ public abstract class ItemEntityMixin extends Entity {
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
         if (!this.getWorld().isClient && !this.isRecorded) {
-            if (this.itemAge >= 5990) { // 接近 5 分钟
+            if (this.itemAge >= 5990) { // Approaching 5 minutes
                 ItemStack stack = this.getStack();
                 if (stack.getItem() instanceof ToolItem && stack.getDamage() < stack.getMaxDamage()) {
                     AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.getWorld());
