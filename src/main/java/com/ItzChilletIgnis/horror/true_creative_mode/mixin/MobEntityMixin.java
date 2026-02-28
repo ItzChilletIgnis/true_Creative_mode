@@ -3,7 +3,6 @@ package com.ItzChilletIgnis.horror.true_creative_mode.mixin;
 import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.FleeEntityGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.mob.MobEntity;
@@ -32,25 +31,43 @@ public abstract class MobEntityMixin extends LivingEntity {
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo ci) {
         if ((Object) this instanceof AnimalEntity animal) {
-            this.goalSelector.add(0, new FleePlayerGoal(animal));
+            this.goalSelector.add(0, new CustomFleeGoal(animal));
             this.goalSelector.add(0, new StareAndBackGoal(animal));
         }
     }
 
-    private static class FleePlayerGoal extends FleeEntityGoal<PlayerEntity> {
-        public FleePlayerGoal(AnimalEntity animal) {
-            super(animal, PlayerEntity.class, 16.0F, 1.5, 2.0);
+    private class CustomFleeGoal extends Goal {
+        private final MobEntity mob;
+        private PlayerEntity target;
+
+        public CustomFleeGoal(MobEntity mob) {
+            this.mob = mob;
+            this.setControls(EnumSet.of(Control.MOVE));
         }
 
         @Override
         public boolean canStart() {
             if (this.mob.getWorld().isClient) return false;
             AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.mob.getWorld());
-            return state.nauseaEndTime > this.mob.getWorld().getTime() && !state.isNauseaEscalated && super.canStart();
+            if (state.nauseaEndTime > this.mob.getWorld().getTime() && !state.isNauseaEscalated) {
+                this.target = this.mob.getWorld().getClosestPlayer(this.mob, 16.0);
+                return this.target != null;
+            }
+            return false;
+        }
+
+        @Override
+        public void tick() {
+            if (this.target != null && this.mob.squaredDistanceTo(this.target) < 256.0) {
+                if (this.mob.age % 5 == 0) {
+                    Vec3d away = this.mob.getPos().subtract(this.target.getPos()).normalize().multiply(8.0);
+                    this.mob.getNavigation().startMovingTo(this.mob.getX() + away.x, this.mob.getY(), this.mob.getZ() + away.z, 1.5);
+                }
+            }
         }
     }
 
-    private static class StareAndBackGoal extends Goal {
+    private class StareAndBackGoal extends Goal {
         private final AnimalEntity animal;
         private PlayerEntity target;
 
@@ -74,10 +91,13 @@ public abstract class MobEntityMixin extends LivingEntity {
         public void tick() {
             if (this.target != null) {
                 this.animal.getLookControl().lookAt(this.target, 30.0F, 30.0F);
-                double distance = this.animal.squaredDistanceTo(this.target);
-                if (distance < 36.0) { // 6 格
-                    Vec3d away = this.animal.getPos().subtract(this.target.getPos()).normalize().multiply(2.0);
-                    this.animal.getNavigation().startMovingTo(this.animal.getX() + away.x, this.animal.getY(), this.animal.getZ() + away.z, 1.0);
+                if (this.animal.squaredDistanceTo(this.target) < 36.0) {
+                    if (this.animal.age % 10 == 0) {
+                        Vec3d away = this.animal.getPos().subtract(this.target.getPos()).normalize().multiply(4.0);
+                        this.animal.getNavigation().startMovingTo(this.animal.getX() + away.x, this.animal.getY(), this.animal.getZ() + away.z, 1.2);
+                    }
+                } else {
+                    this.animal.getNavigation().stop();
                 }
             }
         }

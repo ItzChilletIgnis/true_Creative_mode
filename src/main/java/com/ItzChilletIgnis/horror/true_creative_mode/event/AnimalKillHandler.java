@@ -6,6 +6,8 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
@@ -49,9 +51,14 @@ public class AnimalKillHandler {
                             state.extinctionEndTime = currentTime + 72000;
                             player.sendMessage(Text.literal("Satisfied?").formatted(Formatting.RED, Formatting.BOLD), false);
                             
-                            // 遍历世界清理动物
+                            // 播放洞穴音效增强恐怖感
+                            world.playSound(null, player.getBlockPos(), SoundEvents.AMBIENT_CAVE, SoundCategory.AMBIENT, 1.0F, 1.0F);
+                            
+                            // 遍历世界清理动物 (使用虚空伤害触发死亡动画)
                             world.iterateEntities().forEach(entity -> {
-                                if (entity instanceof AnimalEntity) entity.discard();
+                                if (entity instanceof AnimalEntity targetAnimal) {
+                                    targetAnimal.damage(world.getDamageSources().outOfWorld(), Float.MAX_VALUE);
+                                }
                             });
                         }
                     }

@@ -4,13 +4,10 @@ import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,17 +30,6 @@ public abstract class LivingEntityMixin extends Entity {
                 if (new Random().nextFloat() < 0.3f) {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 300, 0));
                 }
-            }
-        }
-    }
-
-    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void onDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (!this.getWorld().isClient && (Object)this instanceof AnimalEntity) {
-            AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) this.getWorld());
-            if (state.extinctionEndTime > this.getWorld().getTime()) {
-                this.discard();
-                cir.setReturnValue(false);
             }
         }
     }

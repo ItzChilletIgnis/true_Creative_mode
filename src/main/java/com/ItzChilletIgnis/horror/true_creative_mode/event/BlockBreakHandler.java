@@ -12,6 +12,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -69,6 +71,9 @@ public class BlockBreakHandler {
                     toolState.isResoluteDepartureActive = true;
                     player.sendMessage(Text.literal("TRAITOR").formatted(Formatting.RED, Formatting.BOLD), false);
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0)); // 4秒 (80 ticks)
+                    
+                    // 觉醒时刻播放洞穴音效
+                    world.playSound(null, pos, SoundEvents.AMBIENT_CAVE, SoundCategory.AMBIENT, 1.0F, 1.0F);
                 }
             } else {
                 // 掉落老友
