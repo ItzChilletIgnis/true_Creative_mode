@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "true_creative_mode",
+  "version": "${version}",
+  "name": "True Creative Mode",
+  "description": "They know the meaning of 'creative' better than you do ",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/true_creative_mode/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.ItzChilletIgnis.horror.true_creative_mode.client.True_creative_modeDataGenerator"
+    ],
+    "client": [
+      "com.ItzChilletIgnis.horror.true_creative_mode.client.True_creative_modeClient"
+    ],
+    "main": [
+      "com.ItzChilletIgnis.horror.true_creative_mode.True_creative_mode"
+    ]
+  },
+  "mixins": [
+    "true_creative_mode.mixins.json",
+    {
+      "config": "true_creative_mode.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

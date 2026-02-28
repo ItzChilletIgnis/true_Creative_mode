@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ItzChilletIgnis.horror.true_creative_mode.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ItemEntityMixin",
+    "LootableContainerBlockEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
