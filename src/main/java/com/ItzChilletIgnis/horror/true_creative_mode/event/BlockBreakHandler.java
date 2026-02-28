@@ -67,8 +67,8 @@ public class BlockBreakHandler {
                 // 黑化判定
                 if (toolState.remainsDroppedCount > 4) {
                     toolState.isResoluteDepartureActive = true;
-                    player.sendMessage(Text.literal("你为什么这么残酷？").formatted(Formatting.RED, Formatting.BOLD), false);
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0));
+                    player.sendMessage(Text.literal("TRAITOR").formatted(Formatting.RED, Formatting.BOLD), false);
+                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0)); // 4秒 (80 ticks)
                 }
             } else {
                 // 掉落老友
