@@ -15,7 +15,9 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class BlockBreakHandler {
     private static final Random RANDOM = new Random();
@@ -38,11 +40,17 @@ public class BlockBreakHandler {
         if (world.isClient) return;
 
         AbandonedToolState toolState = AbandonedToolState.getServerState((ServerWorld) world);
-        if (toolState.abandonedTools.isEmpty()) return;
+        
+        // 筛选符合条件的工具：非容器内的，或者在容器内关了超过 3 分钟的，且尚未重逢的
+        List<AbandonedToolState.AbandonedTool> eligibleTools = toolState.abandonedTools.stream()
+                .filter(tool -> !tool.reunited)
+                .filter(tool -> !tool.inContainer || (world.getTime() - tool.timestamp >= 3600))
+                .collect(Collectors.toList());
+
+        if (eligibleTools.isEmpty()) return;
 
         if (RANDOM.nextFloat() < 0.05f) {
-            int index = RANDOM.nextInt(toolState.abandonedTools.size());
-            AbandonedToolState.AbandonedTool abandonedTool = toolState.abandonedTools.get(index);
+            AbandonedToolState.AbandonedTool abandonedTool = eligibleTools.get(RANDOM.nextInt(eligibleTools.size()));
             ItemStack stack = abandonedTool.stack;
 
             NbtCompound nbt = stack.getOrCreateNbt();
@@ -55,15 +63,21 @@ public class BlockBreakHandler {
                 String msg = REMAINS_MESSAGES[RANDOM.nextInt(REMAINS_MESSAGES.length)];
                 remains.setCustomName(Text.literal(msg).formatted(Formatting.DARK_RED));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, remains));
-                toolState.abandonedTools.remove(index);
+                
+                // 彻底移除记录
+                toolState.abandonedTools.remove(abandonedTool);
             } else {
                 // 掉落老友
                 String msg = TOOL_MESSAGES[RANDOM.nextInt(TOOL_MESSAGES.length)];
                 stack.setCustomName(Text.literal(msg).formatted(Formatting.GRAY, Formatting.ITALIC));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack));
                 
-                // 如果是容器中的，需要标记移除（这里简单处理，直接从列表移除，后续逻辑在容器交互时处理）
-                toolState.abandonedTools.remove(index);
+                // 标记为已重逢，等待开箱抹除（如果是容器内的）或后续处理
+                if (abandonedTool.inContainer) {
+                    abandonedTool.reunited = true;
+                } else {
+                    toolState.abandonedTools.remove(abandonedTool);
+                }
             }
             toolState.markDirty();
         }

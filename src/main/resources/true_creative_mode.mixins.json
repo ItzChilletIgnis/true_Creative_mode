@@ -4,8 +4,7 @@
   "package": "com.ItzChilletIgnis.horror.true_creative_mode.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ItemEntityMixin",
-    "LootableContainerBlockEntityMixin"
+    "ItemEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

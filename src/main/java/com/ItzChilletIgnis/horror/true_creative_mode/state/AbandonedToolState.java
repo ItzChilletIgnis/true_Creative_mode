@@ -19,6 +19,8 @@ public class AbandonedToolState extends PersistentState {
         public long timestamp;
         public boolean inContainer;
         public UUID ownerUuid;
+        public UUID uuid; // 死亡印记
+        public boolean reunited = false; // 是否已在外界重逢
 
         public AbandonedTool(ItemStack stack, BlockPos pos, int slot, long timestamp, boolean inContainer, UUID ownerUuid) {
             this.stack = stack;
@@ -27,6 +29,7 @@ public class AbandonedToolState extends PersistentState {
             this.timestamp = timestamp;
             this.inContainer = inContainer;
             this.ownerUuid = ownerUuid;
+            this.uuid = UUID.randomUUID();
         }
 
         public NbtCompound toNbt() {
@@ -41,6 +44,8 @@ public class AbandonedToolState extends PersistentState {
             if (ownerUuid != null) {
                 nbt.putUuid("Owner", ownerUuid);
             }
+            nbt.putUuid("UUID", uuid);
+            nbt.putBoolean("Reunited", reunited);
             return nbt;
         }
 
@@ -51,12 +56,22 @@ public class AbandonedToolState extends PersistentState {
             long timestamp = nbt.getLong("Timestamp");
             boolean inContainer = nbt.getBoolean("InContainer");
             UUID ownerUuid = nbt.contains("Owner") ? nbt.getUuid("Owner") : null;
-            return new AbandonedTool(stack, pos, slot, timestamp, inContainer, ownerUuid);
+            AbandonedTool tool = new AbandonedTool(stack, pos, slot, timestamp, inContainer, ownerUuid);
+            tool.uuid = nbt.getUuid("UUID");
+            tool.reunited = nbt.getBoolean("Reunited");
+            return tool;
         }
     }
 
     public final List<AbandonedTool> abandonedTools = new ArrayList<>();
     public int totalAbandonedCount = 0;
+
+    public AbandonedTool getToolByUUID(UUID uuid) {
+        for (AbandonedTool tool : abandonedTools) {
+            if (tool.uuid.equals(uuid)) return tool;
+        }
+        return null;
+    }
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
