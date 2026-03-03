@@ -1,14 +1,13 @@
 {
   "required": true,
-  "minVersion": "0.8",
   "package": "com.ItzChilletIgnis.horror.true_creative_mode.mixin.client",
   "compatibilityLevel": "JAVA_17",
-  "client": [
+  "mixins": [
+    "ClientWorldMixin",
+    "WorldRendererMixin",
+    "WorldMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
   }
 }

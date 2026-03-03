@@ -69,7 +69,8 @@ public class BlockBreakHandler {
                 // 黑化判定
                 if (toolState.remainsDroppedCount > 4) {
                     toolState.isResoluteDepartureActive = true;
-                    player.sendMessage(Text.literal("TRAITOR").formatted(Formatting.RED, Formatting.BOLD), false);
+                    // 叙事更新：世界不再愤怒，而是冷漠地“满足”玩家的愿望
+                    player.sendMessage(Text.literal("Good, you will never see them again.").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0)); // 4秒 (80 ticks)
                     
                     // 觉醒时刻播放洞穴音效

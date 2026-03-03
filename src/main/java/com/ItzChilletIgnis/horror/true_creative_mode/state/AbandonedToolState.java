@@ -37,6 +37,7 @@ public class AbandonedToolState extends PersistentState {
     public int currentStage = 1;
     public int remainsDroppedCount = 0;
     public boolean isResoluteDepartureActive = false;
+    public boolean hasDroppedEvidence = false;
 
     // 作呕与灭绝相关变量
     public List<Long> recentAnimalKills = new ArrayList<>();
@@ -45,6 +46,15 @@ public class AbandonedToolState extends PersistentState {
     public List<Long> escalatedKills = new ArrayList<>();
     public int escalatedKillTotal = 0;
     public long extinctionEndTime = 0;
+
+    // 纵火事件相关变量
+    public List<Long> logBreakTimestamps = new ArrayList<>();
+    public List<Long> saplingPlantTimestamps = new ArrayList<>();
+    public long emberEndTime = 0;
+    public long fireEndTime = 0;
+    public long ashfallEndTime = 0;
+    public int logsChoppedInEmber = 0;
+    public int logsChoppedInFire = 0;
 
     public void addHatred(int amount) {
         this.hatredValue += amount;
@@ -74,6 +84,7 @@ public class AbandonedToolState extends PersistentState {
         nbt.putInt("CurrentStage", currentStage);
         nbt.putInt("RemainsDroppedCount", remainsDroppedCount);
         nbt.putBoolean("IsResoluteDepartureActive", isResoluteDepartureActive);
+        nbt.putBoolean("HasDroppedEvidence", hasDroppedEvidence);
 
         // 序列化作呕与灭绝数据
         NbtList recentKillsNbt = new NbtList();
@@ -89,6 +100,21 @@ public class AbandonedToolState extends PersistentState {
         
         nbt.putInt("EscalatedKillTotal", escalatedKillTotal);
         nbt.putLong("ExtinctionEndTime", extinctionEndTime);
+
+        // 序列化纵火事件数据
+        NbtList logBreakNbt = new NbtList();
+        for (Long time : logBreakTimestamps) logBreakNbt.add(NbtLong.of(time));
+        nbt.put("LogBreakTimestamps", logBreakNbt);
+
+        NbtList saplingPlantNbt = new NbtList();
+        for (Long time : saplingPlantTimestamps) saplingPlantNbt.add(NbtLong.of(time));
+        nbt.put("SaplingPlantTimestamps", saplingPlantNbt);
+
+        nbt.putLong("EmberEndTime", emberEndTime);
+        nbt.putLong("FireEndTime", fireEndTime);
+        nbt.putLong("AshfallEndTime", ashfallEndTime);
+        nbt.putInt("LogsChoppedInEmber", logsChoppedInEmber);
+        nbt.putInt("LogsChoppedInFire", logsChoppedInFire);
         
         return nbt;
     }
@@ -104,6 +130,7 @@ public class AbandonedToolState extends PersistentState {
         state.currentStage = nbt.contains("CurrentStage") ? nbt.getInt("CurrentStage") : 1;
         state.remainsDroppedCount = nbt.getInt("RemainsDroppedCount");
         state.isResoluteDepartureActive = nbt.getBoolean("IsResoluteDepartureActive");
+        state.hasDroppedEvidence = nbt.getBoolean("HasDroppedEvidence");
 
         // 反序列化作呕与灭绝数据
         NbtList recentKillsNbt = nbt.getList("RecentAnimalKills", 4); // 4 is NbtLong type
@@ -127,6 +154,29 @@ public class AbandonedToolState extends PersistentState {
         
         state.escalatedKillTotal = nbt.getInt("EscalatedKillTotal");
         state.extinctionEndTime = nbt.getLong("ExtinctionEndTime");
+
+        // 反序列化纵火事件数据
+        NbtList logBreakNbt = nbt.getList("LogBreakTimestamps", 4);
+        for (int i = 0; i < logBreakNbt.size(); i++) {
+            NbtElement element = logBreakNbt.get(i);
+            if (element instanceof NbtLong nbtLong) {
+                state.logBreakTimestamps.add(nbtLong.longValue());
+            }
+        }
+
+        NbtList saplingPlantNbt = nbt.getList("SaplingPlantTimestamps", 4);
+        for (int i = 0; i < saplingPlantNbt.size(); i++) {
+            NbtElement element = saplingPlantNbt.get(i);
+            if (element instanceof NbtLong nbtLong) {
+                state.saplingPlantTimestamps.add(nbtLong.longValue());
+            }
+        }
+
+        state.emberEndTime = nbt.getLong("EmberEndTime");
+        state.fireEndTime = nbt.getLong("FireEndTime");
+        state.ashfallEndTime = nbt.getLong("AshfallEndTime");
+        state.logsChoppedInEmber = nbt.getInt("LogsChoppedInEmber");
+        state.logsChoppedInFire = nbt.getInt("LogsChoppedInFire");
 
         return state;
     }

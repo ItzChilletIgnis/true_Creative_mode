@@ -28,29 +28,60 @@ public class DebugCommand {
                         source.sendFeedback(() -> Text.literal("Total Abandoned Count: ").formatted(Formatting.GRAY)
                             .append(Text.literal(String.valueOf(state.totalAbandonedCount)).formatted(Formatting.YELLOW)), false);
                         source.sendFeedback(() -> Text.literal("Hatred Value: ").formatted(Formatting.GRAY)
-                            .append(Text.literal(String.valueOf(state.hatredValue)).formatted(Formatting.RED)), false);
+                            .append(Text.literal(String.valueOf(state.hatredValue)).formatted(Formatting.DARK_RED)), false);
                         source.sendFeedback(() -> Text.literal("Current Stage: ").formatted(Formatting.GRAY)
                             .append(Text.literal(String.valueOf(state.currentStage)).formatted(Formatting.DARK_PURPLE)), false);
                         source.sendFeedback(() -> Text.literal("Remains Dropped: ").formatted(Formatting.GRAY)
                             .append(Text.literal(String.valueOf(state.remainsDroppedCount)).formatted(Formatting.DARK_RED)), false);
                         source.sendFeedback(() -> Text.literal("Resolute Departure Active: ").formatted(Formatting.GRAY)
-                            .append(Text.literal(String.valueOf(state.isResoluteDepartureActive)).formatted(state.isResoluteDepartureActive ? Formatting.GREEN : Formatting.RED)), false);
+                            .append(Text.literal(String.valueOf(state.isResoluteDepartureActive)).formatted(state.isResoluteDepartureActive ? Formatting.GREEN : Formatting.DARK_RED)), false);
 
                         // 作呕与灭绝信息
                         source.sendFeedback(() -> Text.literal("--- Nausea & Extinction ---").formatted(Formatting.GOLD), false);
                         source.sendFeedback(() -> Text.literal("Recent Kills (3m): ").formatted(Formatting.GRAY)
                             .append(Text.literal(String.valueOf(state.recentAnimalKills.size())).formatted(Formatting.WHITE)), false);
                         source.sendFeedback(() -> Text.literal("Nausea Active: ").formatted(Formatting.GRAY)
-                            .append(Text.literal(state.nauseaEndTime > currentTime ? "YES (" + (state.nauseaEndTime - currentTime) + " ticks left)" : "NO").formatted(state.nauseaEndTime > currentTime ? Formatting.GREEN : Formatting.RED)), false);
+                            .append(Text.literal(state.nauseaEndTime > currentTime ? "YES (" + (state.nauseaEndTime - currentTime) + " ticks left)" : "NO").formatted(state.nauseaEndTime > currentTime ? Formatting.GREEN : Formatting.DARK_RED)), false);
                         source.sendFeedback(() -> Text.literal("Nausea Escalated: ").formatted(Formatting.GRAY)
-                            .append(Text.literal(String.valueOf(state.isNauseaEscalated)).formatted(state.isNauseaEscalated ? Formatting.GREEN : Formatting.RED)), false);
+                            .append(Text.literal(String.valueOf(state.isNauseaEscalated)).formatted(state.isNauseaEscalated ? Formatting.GREEN : Formatting.DARK_RED)), false);
                         source.sendFeedback(() -> Text.literal("Escalated Kill Total: ").formatted(Formatting.GRAY)
                             .append(Text.literal(String.valueOf(state.escalatedKillTotal)).formatted(Formatting.DARK_RED)), false);
                         source.sendFeedback(() -> Text.literal("Extinction Active: ").formatted(Formatting.GRAY)
-                            .append(Text.literal(state.extinctionEndTime > currentTime ? "YES (" + (state.extinctionEndTime - currentTime) + " ticks left)" : "NO").formatted(state.extinctionEndTime > currentTime ? Formatting.GREEN : Formatting.RED)), false);
+                            .append(Text.literal(state.extinctionEndTime > currentTime ? "YES (" + (state.extinctionEndTime - currentTime) + " ticks left)" : "NO").formatted(state.extinctionEndTime > currentTime ? Formatting.GREEN : Formatting.DARK_RED)), false);
+
+                        // 纵火事件信息
+                        source.sendFeedback(() -> Text.literal("--- Arson Event ---").formatted(Formatting.GOLD), false);
+                        source.sendFeedback(() -> Text.literal("Is Ember Active: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.emberEndTime > currentTime)).formatted(state.emberEndTime > currentTime ? Formatting.GREEN : Formatting.DARK_RED)), false);
+                        source.sendFeedback(() -> Text.literal("Is Fire Active: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.fireEndTime > currentTime)).formatted(state.fireEndTime > currentTime ? Formatting.GREEN : Formatting.DARK_RED)), false);
+                        source.sendFeedback(() -> Text.literal("Is Ashfall Active: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.ashfallEndTime > currentTime)).formatted(state.ashfallEndTime > currentTime ? Formatting.GREEN : Formatting.DARK_RED)), false);
+                        
+                        if (state.emberEndTime > currentTime) {
+                            source.sendFeedback(() -> Text.literal("Ember Remaining: ").formatted(Formatting.GRAY)
+                                .append(Text.literal((state.emberEndTime - currentTime) / 20 + "s").formatted(Formatting.YELLOW)), false);
+                        }
+                        if (state.fireEndTime > currentTime) {
+                            source.sendFeedback(() -> Text.literal("Fire Remaining: ").formatted(Formatting.GRAY)
+                                .append(Text.literal((state.fireEndTime - currentTime) / 20 + "s").formatted(Formatting.YELLOW)), false);
+                        }
+                        if (state.ashfallEndTime > currentTime) {
+                            source.sendFeedback(() -> Text.literal("Ashfall Remaining: ").formatted(Formatting.GRAY)
+                                .append(Text.literal((state.ashfallEndTime - currentTime) / 20 + "s").formatted(Formatting.YELLOW)), false);
+                        }
+
+                        source.sendFeedback(() -> Text.literal("Logs in Ember: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.logsChoppedInEmber)).formatted(Formatting.WHITE)), false);
+                        source.sendFeedback(() -> Text.literal("Logs in Fire: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.logsChoppedInFire)).formatted(Formatting.WHITE)), false);
+                        source.sendFeedback(() -> Text.literal("Recent Logs (24h): ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.logBreakTimestamps.size())).formatted(Formatting.WHITE)), false);
+                        source.sendFeedback(() -> Text.literal("Recent Saplings (24h): ").formatted(Formatting.GRAY)
+                            .append(Text.literal(String.valueOf(state.saplingPlantTimestamps.size())).formatted(Formatting.WHITE)), false);
 
                         if (state.abandonedTools.isEmpty()) {
-                            source.sendFeedback(() -> Text.literal("Currently no tools are being tracked.").formatted(Formatting.RED, Formatting.ITALIC), false);
+                            source.sendFeedback(() -> Text.literal("Currently no tools are being tracked.").formatted(Formatting.DARK_RED, Formatting.ITALIC), false);
                         } else {
                             source.sendFeedback(() -> Text.literal("List of Tracked Tools:").formatted(Formatting.BLUE), false);
                             for (AbandonedToolState.AbandonedTool tool : state.abandonedTools) {
@@ -119,6 +150,13 @@ public class DebugCommand {
                         state.escalatedKills.clear();
                         state.escalatedKillTotal = 0;
                         state.extinctionEndTime = 0;
+                        state.logBreakTimestamps.clear();
+                        state.saplingPlantTimestamps.clear();
+                        state.emberEndTime = 0;
+                        state.fireEndTime = 0;
+                        state.ashfallEndTime = 0;
+                        state.logsChoppedInEmber = 0;
+                        state.logsChoppedInFire = 0;
                         state.markDirty();
                         source.sendFeedback(() -> Text.literal("Reset all True Creative Mode data."), false);
                         return 1;

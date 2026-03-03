@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 
 public class ModItems {
     public static final Item REMAINS = registerItem("remains", new Item(new Item.Settings()));
+    public static final Item ASHES = registerItem("ashes", new Item(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, new Identifier("true_creative_mode", name), item);

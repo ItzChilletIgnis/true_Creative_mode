@@ -30,12 +30,12 @@ public abstract class MobEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
-    @Inject(method = "initGoals", at = @At("TAIL"))
-    private void onInitGoals(CallbackInfo ci) {
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onConstruct(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo ci) {
         if ((Object) this instanceof AnimalEntity) {
             PathAwareEntity pathAware = (PathAwareEntity) (Object) this;
             this.goalSelector.add(0, new CustomFleeGoal(pathAware));
-            this.goalSelector.add(1, new StareAndBackGoal(pathAware));
+            this.goalSelector.add(1, new StareAndFreezeGoal(pathAware));
         }
     }
 
@@ -76,12 +76,11 @@ public abstract class MobEntityMixin extends LivingEntity {
         }
     }
 
-    private class StareAndBackGoal extends Goal {
+    private class StareAndFreezeGoal extends Goal {
         private final PathAwareEntity mob;
         private PlayerEntity target;
-        private int pathUpdateCountdown = 0;
 
-        public StareAndBackGoal(PathAwareEntity mob) {
+        public StareAndFreezeGoal(PathAwareEntity mob) {
             this.mob = mob;
             this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
         }
@@ -100,17 +99,11 @@ public abstract class MobEntityMixin extends LivingEntity {
         @Override
         public void tick() {
             if (this.target != null) {
-                // 强制接管视角
+                // 强制接管视角，死死盯着玩家
                 this.mob.getLookControl().lookAt(this.target, 30.0F, 30.0F);
                 
-                if (--this.pathUpdateCountdown <= 0) {
-                    this.pathUpdateCountdown = 10; // 半秒寻路一次
-                    
-                    Vec3d reverseDirection = this.mob.getPos().subtract(this.target.getPos()).normalize();
-                    Vec3d retreatPos = this.mob.getPos().add(reverseDirection.multiply(3.0));
-                    
-                    this.mob.getNavigation().startMovingTo(retreatPos.x, retreatPos.y, retreatPos.z, 1.2);
-                }
+                // 强制停止移动，营造“被观察”的恐怖静止感
+                this.mob.getNavigation().stop();
             }
         }
 
