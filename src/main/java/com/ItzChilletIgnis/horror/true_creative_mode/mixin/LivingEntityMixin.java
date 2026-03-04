@@ -1,6 +1,7 @@
 package com.ItzChilletIgnis.horror.true_creative_mode.mixin;
 
 import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -39,7 +40,7 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     @Inject(method = "eatFood", at = @At("HEAD"))
-    private void onEatFood(World world, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
+    private void onEatFood(World world, ItemStack stack, FoodComponent foodComponent, CallbackInfoReturnable<ItemStack> cir) {
         if (!world.isClient && (Object)this instanceof PlayerEntity player) {
             AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) world);
             long currentTime = world.getTime();
