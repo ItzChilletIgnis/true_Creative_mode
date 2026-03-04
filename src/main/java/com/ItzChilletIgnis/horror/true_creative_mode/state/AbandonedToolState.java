@@ -1,10 +1,12 @@
 package com.ItzChilletIgnis.horror.true_creative_mode.state;
 
+import net.minecraft.data.DataFixTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 
@@ -12,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AbandonedToolState extends PersistentState {
+    public static final Type<AbandonedToolState> TYPE = new Type<>(
+        AbandonedToolState::new,
+        AbandonedToolState::fromNbt,
+        DataFixTypes.SAVED_DATA_COMMAND_STORAGE
+    );
+
     public static class AbandonedTool {
         public ItemStack stack;
 
@@ -73,7 +81,7 @@ public class AbandonedToolState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         NbtList list = new NbtList();
         for (AbandonedTool tool : abandonedTools) {
             list.add(tool.toNbt());
@@ -119,7 +127,7 @@ public class AbandonedToolState extends PersistentState {
         return nbt;
     }
 
-    public static AbandonedToolState fromNbt(NbtCompound nbt) {
+    public static AbandonedToolState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         AbandonedToolState state = new AbandonedToolState();
         NbtList list = nbt.getList("AbandonedTools", 10);
         for (int i = 0; i < list.size(); i++) {
@@ -182,10 +190,6 @@ public class AbandonedToolState extends PersistentState {
     }
 
     public static AbandonedToolState getServerState(ServerWorld world) {
-        return world.getServer().getOverworld().getPersistentStateManager().getOrCreate(
-                AbandonedToolState::fromNbt,
-                AbandonedToolState::new,
-                "true_creative_abandoned_tools"
-        );
+        return world.getPersistentStateManager().getOrCreate(TYPE, "true_creative_abandoned_tools");
     }
 }

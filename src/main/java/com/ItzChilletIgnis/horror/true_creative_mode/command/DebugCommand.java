@@ -5,7 +5,10 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomData;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -86,7 +89,11 @@ public class DebugCommand {
                             source.sendFeedback(() -> Text.literal("List of Tracked Tools:").formatted(Formatting.BLUE), false);
                             for (AbandonedToolState.AbandonedTool tool : state.abandonedTools) {
                                 ItemStack stack = tool.stack;
-                                int count = stack.hasNbt() ? stack.getNbt().getInt("abandon_count") : 0;
+                                // 适配 1.21 Data Component API
+                                CustomData customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, CustomData.DEFAULT);
+                                NbtCompound nbt = customData.copyNbt();
+                                int count = nbt.getInt("abandon_count");
+
                                 source.sendFeedback(() -> Text.literal("- ")
                                     .append(stack.getName().copy().formatted(Formatting.WHITE))
                                     .append(Text.literal(" (abandon_count: " + count + ")").formatted(Formatting.DARK_GRAY)), false);

@@ -2,20 +2,20 @@ package com.ItzChilletIgnis.horror.true_creative_mode.event;
 
 import com.ItzChilletIgnis.horror.true_creative_mode.True_creative_mode;
 import com.ItzChilletIgnis.horror.true_creative_mode.item.ModItems;
+import com.ItzChilletIgnis.horror.true_creative_mode.network.SyncAshfallStatePayload;
 import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -40,7 +40,7 @@ public class ArsonHandler {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (!world.isClient) {
                 ItemStack stack = player.getStackInHand(hand);
-                if (stack.getItem().toString().contains("sapling")) {
+                if (stack.isIn(ItemTags.SAPLINGS)) {
                      AbandonedToolState state = AbandonedToolState.getServerState((ServerWorld) world);
                      state.saplingPlantTimestamps.add(world.getTime());
                      state.markDirty();
@@ -79,17 +79,18 @@ public class ArsonHandler {
                     toolState.logsChoppedInEmber++;
                     if (toolState.logsChoppedInEmber >= 16) {
                         toolState.fireEndTime = currentTime + 6000;
-                        toolState.emberEndTime = 0;
+                        toolState.emberEndTime = toolState.fireEndTime; // 延长灰烬状态
                         toolState.logsChoppedInEmber = 0;
                         toolState.addHatred(8);
                         isFire = true;
-                        isEmber = false;
 
-                        if (!toolState.hasDroppedEvidence) {
-                            player.sendMessage(Text.literal("Do you remember it?").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
+                        // 叙事重构：触发火灾阶段
+                        if (!toolState.hasDroppedEvidence) { // 确保只触发一次
+                            player.sendMessage(Text.literal("In the way, right?").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
                             ItemStack evidence = new ItemStack(Items.FLINT_AND_STEEL);
                             evidence.setDamage(32);
-                            evidence.setCustomName(Text.literal("Evidence").formatted(Formatting.GRAY, Formatting.ITALIC));
+                            // 适配 1.21 Data Component API
+                            evidence.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Gift").formatted(Formatting.GRAY, Formatting.ITALIC));
                             world.spawnEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), evidence));
                             toolState.hasDroppedEvidence = true;
                         }
@@ -99,14 +100,12 @@ public class ArsonHandler {
                     toolState.logsChoppedInFire++;
                     if (toolState.logsChoppedInFire >= 4) {
                         toolState.ashfallEndTime = currentTime + 6000;
-                        toolState.fireEndTime = 0;
+                        // 延长火灾和灰烬状态
+                        toolState.fireEndTime = toolState.ashfallEndTime;
+                        toolState.emberEndTime = toolState.ashfallEndTime;
                         toolState.logsChoppedInFire = 0;
                         toolState.addHatred(14);
                         isAshfall = true;
-                        isFire = false;
-                        
-                        // 触发 Ashfall 时的文本
-                        player.sendMessage(Text.literal("In the way, right?").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
 
                         // 播放凋灵出生音效
                         world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.AMBIENT, 1.0f, 1.0f);
@@ -126,7 +125,6 @@ public class ArsonHandler {
                             if (mainInv.get(i).isEmpty()) {
                                 ItemStack weapon = new ItemStack(Items.FLINT_AND_STEEL);
                                 weapon.setDamage(61); // 仅剩 3 点耐久
-                                weapon.setCustomName(Text.literal("Gift").formatted(Formatting.GRAY, Formatting.ITALIC)); // 命名为 Gift
                                 mainInv.set(i, weapon);
                             }
                         }
@@ -134,7 +132,6 @@ public class ArsonHandler {
                         if (player.getOffHandStack().isEmpty()) {
                             ItemStack weapon = new ItemStack(Items.FLINT_AND_STEEL);
                             weapon.setDamage(61);
-                            weapon.setCustomName(Text.literal("Gift").formatted(Formatting.GRAY, Formatting.ITALIC));
                             player.setStackInHand(net.minecraft.util.Hand.OFF_HAND, weapon);
                         }
 
@@ -230,10 +227,8 @@ public class ArsonHandler {
     }
 
     private static void syncAshfallState(ServerWorld world, boolean isAshfall) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBoolean(isAshfall);
         for (ServerPlayerEntity player : world.getPlayers()) {
-            ServerPlayNetworking.send(player, True_creative_mode.PACKET_SYNC_ASHFALL_STATE, buf);
+            ServerPlayNetworking.send(player, new SyncAshfallStatePayload(isAshfall));
         }
     }
 

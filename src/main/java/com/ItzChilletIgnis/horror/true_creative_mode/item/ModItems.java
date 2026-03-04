@@ -11,7 +11,7 @@ public class ModItems {
     public static final Item ASHES = registerItem("ashes", new Item(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {
-        return Registry.register(Registries.ITEM, new Identifier("true_creative_mode", name), item);
+        return Registry.register(Registries.ITEM, Identifier.of("true_creative_mode", name), item);
     }
 
     public static void registerModItems() {

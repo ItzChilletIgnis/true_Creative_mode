@@ -1,6 +1,7 @@
 package com.ItzChilletIgnis.horror.true_creative_mode.client;
 
 import com.ItzChilletIgnis.horror.true_creative_mode.True_creative_mode;
+import com.ItzChilletIgnis.horror.true_creative_mode.network.SyncAshfallStatePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -8,9 +9,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 public class True_creative_modeClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ClientPlayNetworking.registerGlobalReceiver(True_creative_mode.PACKET_SYNC_ASHFALL_STATE, (client, handler, buf, responseSender) -> {
-            boolean active = buf.readBoolean();
-            client.execute(() -> {
+        ClientPlayNetworking.registerGlobalReceiver(SyncAshfallStatePayload.ID, (payload, context) -> {
+            boolean active = payload.isAshfall();
+            context.client().execute(() -> {
                 ClientState.isAshfallActive = active;
             });
         });

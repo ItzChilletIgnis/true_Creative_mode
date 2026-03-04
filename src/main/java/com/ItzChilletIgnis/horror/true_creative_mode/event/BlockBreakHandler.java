@@ -5,6 +5,8 @@ import com.ItzChilletIgnis.horror.true_creative_mode.state.AbandonedToolState;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomData;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -51,15 +53,19 @@ public class BlockBreakHandler {
             AbandonedToolState.AbandonedTool abandonedTool = toolState.abandonedTools.get(index);
             ItemStack stack = abandonedTool.stack;
 
-            NbtCompound nbt = stack.getOrCreateNbt();
+            // 适配 1.21 Data Component API
+            CustomData customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, CustomData.DEFAULT);
+            NbtCompound nbt = customData.copyNbt();
             int abandonCount = nbt.getInt("abandon_count") + 1;
             nbt.putInt("abandon_count", abandonCount);
+            stack.set(DataComponentTypes.CUSTOM_DATA, CustomData.of(nbt));
 
             if (abandonCount > 3 || toolState.totalAbandonedCount > 10) {
                 // 异化为残骸
                 ItemStack remains = new ItemStack(ModItems.REMAINS);
                 String msg = REMAINS_MESSAGES[RANDOM.nextInt(REMAINS_MESSAGES.length)];
-                remains.setCustomName(Text.literal(msg).formatted(Formatting.DARK_RED));
+                // 适配 1.21 Data Component API
+                remains.set(DataComponentTypes.CUSTOM_NAME, Text.literal(msg).formatted(Formatting.DARK_RED));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, remains));
                 
                 // 恨意值增加
@@ -79,7 +85,8 @@ public class BlockBreakHandler {
             } else {
                 // 掉落老友
                 String msg = TOOL_MESSAGES[RANDOM.nextInt(TOOL_MESSAGES.length)];
-                stack.setCustomName(Text.literal(msg).formatted(Formatting.GRAY, Formatting.ITALIC));
+                // 适配 1.21 Data Component API
+                stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(msg).formatted(Formatting.GRAY, Formatting.ITALIC));
                 world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack));
             }
             
