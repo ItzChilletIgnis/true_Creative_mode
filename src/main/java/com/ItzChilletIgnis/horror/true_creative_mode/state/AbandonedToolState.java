@@ -1,6 +1,6 @@
 package com.ItzChilletIgnis.horror.true_creative_mode.state;
 
-import net.minecraft.data.DataFixTypes;
+import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -27,14 +27,14 @@ public class AbandonedToolState extends PersistentState {
             this.stack = stack;
         }
 
-        public NbtCompound toNbt() {
+        public NbtCompound toNbt(RegistryWrapper.WrapperLookup registryLookup) {
             NbtCompound nbt = new NbtCompound();
-            nbt.put("Stack", stack.writeNbt(new NbtCompound()));
+            nbt.put("Stack", stack.encode(registryLookup));
             return nbt;
         }
 
-        public static AbandonedTool fromNbt(NbtCompound nbt) {
-            ItemStack stack = ItemStack.fromNbt(nbt.getCompound("Stack"));
+        public static AbandonedTool fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+            ItemStack stack = ItemStack.fromNbt(registryLookup, nbt.get("Stack")).orElse(ItemStack.EMPTY);
             return new AbandonedTool(stack);
         }
     }
@@ -84,7 +84,7 @@ public class AbandonedToolState extends PersistentState {
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         NbtList list = new NbtList();
         for (AbandonedTool tool : abandonedTools) {
-            list.add(tool.toNbt());
+            list.add(tool.toNbt(registryLookup));
         }
         nbt.put("AbandonedTools", list);
         nbt.putInt("TotalAbandonedCount", totalAbandonedCount);
@@ -131,7 +131,7 @@ public class AbandonedToolState extends PersistentState {
         AbandonedToolState state = new AbandonedToolState();
         NbtList list = nbt.getList("AbandonedTools", 10);
         for (int i = 0; i < list.size(); i++) {
-            state.abandonedTools.add(AbandonedTool.fromNbt(list.getCompound(i)));
+            state.abandonedTools.add(AbandonedTool.fromNbt(list.getCompound(i), registryLookup));
         }
         state.totalAbandonedCount = nbt.getInt("TotalAbandonedCount");
         state.hatredValue = nbt.getInt("HatredValue");

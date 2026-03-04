@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomData;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -53,12 +53,12 @@ public class BlockBreakHandler {
             AbandonedToolState.AbandonedTool abandonedTool = toolState.abandonedTools.get(index);
             ItemStack stack = abandonedTool.stack;
 
-            // 适配 1.21 Data Component API
-            CustomData customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, CustomData.DEFAULT);
+            // 适配 1.21 Data Component API (Yarn Mapping: NbtComponent)
+            NbtComponent customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
             NbtCompound nbt = customData.copyNbt();
             int abandonCount = nbt.getInt("abandon_count") + 1;
             nbt.putInt("abandon_count", abandonCount);
-            stack.set(DataComponentTypes.CUSTOM_DATA, CustomData.of(nbt));
+            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
             if (abandonCount > 3 || toolState.totalAbandonedCount > 10) {
                 // 异化为残骸

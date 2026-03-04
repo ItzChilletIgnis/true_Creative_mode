@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomData;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.CommandManager;
@@ -89,8 +89,8 @@ public class DebugCommand {
                             source.sendFeedback(() -> Text.literal("List of Tracked Tools:").formatted(Formatting.BLUE), false);
                             for (AbandonedToolState.AbandonedTool tool : state.abandonedTools) {
                                 ItemStack stack = tool.stack;
-                                // 适配 1.21 Data Component API
-                                CustomData customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, CustomData.DEFAULT);
+                                // 适配 1.21 Data Component API (Yarn Mapping: NbtComponent)
+                                NbtComponent customData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
                                 NbtCompound nbt = customData.copyNbt();
                                 int count = nbt.getInt("abandon_count");
 
