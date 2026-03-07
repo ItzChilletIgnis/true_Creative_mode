@@ -4,6 +4,7 @@ import com.ItzChilletIgnis.horror.true_creative_mode.command.DebugCommand;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.AnimalKillHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.ArsonHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.BlockBreakHandler;
+import com.ItzChilletIgnis.horror.true_creative_mode.event.ClearedSkyHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.SpawningHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.item.ModItems;
 import com.ItzChilletIgnis.horror.true_creative_mode.network.SyncAshfallStatePayload;
@@ -25,6 +26,7 @@ public class True_creative_mode implements ModInitializer {
         AnimalKillHandler.register();
         SpawningHandler.register();
         ArsonHandler.register();
+        ClearedSkyHandler.register();
         DebugCommand.register();
         
         // 注册 Payload

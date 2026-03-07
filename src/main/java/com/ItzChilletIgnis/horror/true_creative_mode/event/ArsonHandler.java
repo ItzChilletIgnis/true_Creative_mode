@@ -107,6 +107,9 @@ public class ArsonHandler {
                         toolState.addHatred(14);
                         isAshfall = true;
 
+                        // 触发 Ashfall 时的文本
+                        player.sendMessage(Text.literal("In the way, right?").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
+
                         // 播放凋灵出生音效
                         world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.AMBIENT, 1.0f, 1.0f);
 
@@ -125,6 +128,8 @@ public class ArsonHandler {
                             if (mainInv.get(i).isEmpty()) {
                                 ItemStack weapon = new ItemStack(Items.FLINT_AND_STEEL);
                                 weapon.setDamage(61); // 仅剩 3 点耐久
+                                // 适配 1.21 Data Component API
+                                weapon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("gift").formatted(Formatting.GRAY, Formatting.ITALIC));
                                 mainInv.set(i, weapon);
                             }
                         }
@@ -132,6 +137,8 @@ public class ArsonHandler {
                         if (player.getOffHandStack().isEmpty()) {
                             ItemStack weapon = new ItemStack(Items.FLINT_AND_STEEL);
                             weapon.setDamage(61);
+                            // 适配 1.21 Data Component API
+                            weapon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("gift").formatted(Formatting.GRAY, Formatting.ITALIC));
                             player.setStackInHand(net.minecraft.util.Hand.OFF_HAND, weapon);
                         }
 
