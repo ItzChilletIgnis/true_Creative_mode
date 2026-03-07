@@ -11,22 +11,17 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import org.joml.Matrix4f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
     @Shadow private ClientWorld world;
     @Shadow private int ticks;
-    @Shadow @Final private static Identifier CLOUDS_TEXTURE;
-
-    @Unique
-    private static final Identifier CLEARED_CLOUDS = Identifier.of("true_creative_mode", "textures/environment/cleared_clouds.png");
 
     @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true)
     private void onRenderSky(Matrix4f matrix4f, Matrix4f matrix4f2, float f, Camera camera, boolean bl, Runnable runnable, CallbackInfo ci) {
@@ -36,10 +31,12 @@ public abstract class WorldRendererMixin {
         }
     }
 
-    @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true)
-    private void onRenderClouds(Matrix4f matrix4f, Matrix4f matrix4f2, float f, double d, double e, double f2, CallbackInfo ci) {
-        // 这里可以通过 Redirect 替换贴图，或者在渲染前修改 Shadow 字段
-        // 为了简单起见，如果需要替换贴图，通常使用 Redirect 注入到 bindTexture
+    @ModifyArg(method = "renderClouds", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderTexture(ILnet/minecraft/util/Identifier;)V"), index = 1)
+    private Identifier changeCloudTexture(Identifier original) {
+        if (ClientState.isSkyCleared) {
+            return Identifier.of("true_creative_mode", "textures/environment/cleared_clouds.png");
+        }
+        return original;
     }
 
     @Inject(method = "renderWeather", at = @At("HEAD"), cancellable = true)

@@ -7,6 +7,7 @@ import com.ItzChilletIgnis.horror.true_creative_mode.event.BlockBreakHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.ClearedSkyHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.event.SpawningHandler;
 import com.ItzChilletIgnis.horror.true_creative_mode.item.ModItems;
+import com.ItzChilletIgnis.horror.true_creative_mode.network.ClearedSkyPayload;
 import com.ItzChilletIgnis.horror.true_creative_mode.network.SyncAshfallStatePayload;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -21,6 +22,10 @@ public class True_creative_mode implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // 注册自定义网络包 (必须在注册处理器之前)
+        PayloadTypeRegistry.playS2C().register(SyncAshfallStatePayload.ID, SyncAshfallStatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ClearedSkyPayload.ID, ClearedSkyPayload.CODEC);
+
         ModItems.registerModItems();
         BlockBreakHandler.register();
         AnimalKillHandler.register();
@@ -28,8 +33,5 @@ public class True_creative_mode implements ModInitializer {
         ArsonHandler.register();
         ClearedSkyHandler.register();
         DebugCommand.register();
-        
-        // 注册 Payload
-        PayloadTypeRegistry.playS2C().register(SyncAshfallStatePayload.ID, SyncAshfallStatePayload.CODEC);
     }
 }
